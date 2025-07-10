@@ -31,6 +31,10 @@ class compassBoard:
         self._write_u8(0x31, 0x0C)
         time.sleep_ms(10)
         
+        #Test functions
+        print("Register 0x31 = ", self._read_u8(0x31))
+        time.sleep_ms(10)
+        
     #Function for reading from compass registers
     def _read_u8(self, reg):
         return int.from_bytes(self.i2c.readfrom_mem(self.addr, reg, 1), 'little')
@@ -40,7 +44,7 @@ class compassBoard:
         self.i2c.writeto_mem(self.addr, reg, bytes([val]))
         
     def read(self) -> dict:
-        while (!(self.drdy)):
+        while (not self.drdy.value()):
             time.sleep_ms(2)
             
         raw = self.i2c.readfrom_mem(self.addr, 0x11, 6)
@@ -64,7 +68,7 @@ class compassBoard:
         time.sleep_ms(10)
         
         for _ in range(20):
-            if drdy:
+            if self.drdy.value():
                 break
             time.sleep_ms(5)
         else:
@@ -72,9 +76,11 @@ class compassBoard:
         
         raw = self.i2c.readfrom_mem(self.addr, 0x11, 6)
         x, y, z = struct.unpack('<hhh', raw)
+        print("x = ",x ,"y = ",y ,"z = ",z)
         
-        self._write_u8(0x31, 0x00)
-        
-        return (200 <= z <= 600)
+        if (-200 <= x <= 200) and (-200 <= y <= 200) and (-800 <= z <= -200):
+            return True
+        else:
+            return False
         
         
